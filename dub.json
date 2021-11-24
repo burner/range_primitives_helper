@@ -1,0 +1,9 @@
+{
+	"authors": [
+		"Robert burner Schadek"
+	],
+	"copyright": "Copyright © 2021, Robert burner Schadek",
+	"description": "A library to help with std.range primitives like isInputRange",
+	"license": "BOOST",
+	"name": "range_primitives_helper"
+}
