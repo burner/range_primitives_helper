@@ -23,11 +23,7 @@ string isInputRangeErrorFormatter(R)() pure {
 				, isPopFrontValid!R()
 				];
 
-		auto msg = tests
-			.filter!(t => t.failed)
-			.map!(t => t.message)
-			.joiner("\n\tand ")
-			.to!string();
+		auto msg = testsToString(tests);
 
 		bool failed = tests.map!(t => t.failed).any();
 
@@ -115,29 +111,22 @@ unittest {
 * This function produces a descriptive message why `R` is not a ForwardRange.
 * If `R` is an ForwardRange the returned string will say so.
 */
-string isForwardRangeErrorFormatter(R)() pure nothrow {
+string isForwardRangeErrorFormatter(R)() pure {
 	static if(is(typeof(R.init) == R)) {
-		bool failed = false;
-		string ret = R.stringof ~ " is not an ForwardRange because";
+		string ret = R.stringof ~ " is not an ForwardRange because\n\t";
 
-		enum ev = isEmptyValid!R();
-		failed |= ev.failed;
-		ret ~= ev.message;
+		Test[] tests =
+				[ isValidEmpty!R()
+				, isFrontValid!R()
+				, isPopFrontValid!R()
+				, isSaveValid!R()
+				];
+		auto msg = testsToString(tests);
 
-		enum fv = isFrontValid!R();
-		failed |= fv.failed;
-		ret ~= fv.message;
-
-		enum pv = isPopFrontValid!R();
-		failed |= pv.failed;
-		ret ~= pv.message;
-
-		enum sv = isSaveValid!R();
-		failed |= sv.failed;
-		ret ~= sv.message;
+		bool failed = tests.map!(t => t.failed).any();
 
 		return failed
-			? ret
+			? ret ~ msg
 			: R.stringof ~ " is an ForwardRange";
 	} else {
 		return R.stringof ~ " can not be tested as " ~ R.stringof ~ ".init"
@@ -145,16 +134,15 @@ string isForwardRangeErrorFormatter(R)() pure nothrow {
 	}
 }
 
-/+
 /// ditto
 unittest {
 	struct Foo {}
 	enum msg = isForwardRangeErrorFormatter!(Foo);
 	enum exp =`Foo is not an ForwardRange because
 	the property 'empty' does not exist
-	the property 'front' does not exist
-	the function 'popFront' does not exist
-	the property 'save' does not exist`;
+	and the property 'front' does not exist
+	and the function 'popFront' does not exist
+	and the property 'save' does not exist`;
 	static assert(msg == exp, msg ~ "\n" ~ exp);
 	string msg2 = isForwardRangeErrorFormatter!(Foo);
 	assert(msg2 == exp, msg ~ "\n" ~ exp);
@@ -167,10 +155,10 @@ unittest {
 	}
 	enum msg = isForwardRangeErrorFormatter!(Foo);
 	enum exp =`Foo is not an ForwardRange because
-	the property 'empty' does not return a 'bool' but a 'int'
-	the property 'front' does not exist
-	the function 'popFront' does not exist
-	the property 'save' does not exist`;
+	the property 'empty' is not of type 'bool' but 'int'
+	and the property 'front' does not exist
+	and the function 'popFront' does not exist
+	and the property 'save' does not exist`;
 	static assert(msg == exp, msg ~ "\n" ~ exp);
 	string msg2 = isForwardRangeErrorFormatter!(Foo);
 	assert(msg2 == exp, msg ~ "\n" ~ exp);
@@ -185,8 +173,8 @@ unittest {
 	enum msg = isForwardRangeErrorFormatter!(Foo);
 	enum exp =`Foo is not an ForwardRange because
 	the property 'front' does not return a non 'void' value
-	the function 'popFront' does not exist
-	the property 'save' does not exist`;
+	and the function 'popFront' does not exist
+	and the property 'save' does not exist`;
 	static assert(msg == exp, msg ~ "\n" ~ exp);
 	string msg2 = isForwardRangeErrorFormatter!(Foo);
 	assert(msg2 == exp, msg ~ "\n" ~ exp);
@@ -201,7 +189,7 @@ unittest {
 	enum msg = isForwardRangeErrorFormatter!(Foo);
 	enum exp =`Foo is not an ForwardRange because
 	the function 'popFront' does not exist
-	the property 'save' does not exist`;
+	and the property 'save' does not exist`;
 	static assert(msg == exp, msg ~ "\n" ~ exp);
 	string msg2 = isForwardRangeErrorFormatter!(Foo);
 	assert(msg2 == exp, msg ~ "\n" ~ exp);
@@ -252,35 +240,28 @@ unittest {
 	string msg2 = isForwardRangeErrorFormatter!(Foo);
 	assert(msg2 == exp, msg ~ "\n" ~ exp);
 }
-+/
 
 /**
 * This function produces a descriptive message why `R` is not an BidirectionalRange.
 * If `R` is an BidirectionalRange the returned string will say so.
 */
-string isBidirectionalRangeErrorFormatter(R)() pure nothrow {
+string isBidirectionalRangeErrorFormatter(R)() pure {
 	static if(is(typeof(R.init) == R)) {
-		bool failed = false;
-		string ret = R.stringof ~ " is not an BidirectionalRange because";
+		string ret = R.stringof ~ " is not an BidirectionalRange because\n\t";
 
-		enum ev = isEmptyValid!R();
-		failed |= ev.failed;
-		ret ~= ev.message;
+		Test[] tests =
+				[ isValidEmpty!R()
+				, isFrontValid!R()
+				, isPopFrontValid!R()
+				, isBackValid!R()
+				, isPopBackValid!R()
+				];
+		auto msg = testsToString(tests);
 
-		enum fv = isFrontValid!R();
-		failed |= fv.failed;
-		ret ~= fv.message;
-
-		enum pv = isPopFrontValid!R();
-		failed |= pv.failed;
-		ret ~= pv.message;
-
-		enum bv = isBackValid!R();
-		failed |= bv.failed;
-		ret ~= bv.message;
+		bool failed = tests.map!(t => t.failed).any();
 
 		return failed
-			? ret
+			? ret ~ msg
 			: R.stringof ~ " is an BidirectionalRange";
 	} else {
 		return R.stringof ~ " can not be tested as " ~ R.stringof ~ ".init"
@@ -288,17 +269,17 @@ string isBidirectionalRangeErrorFormatter(R)() pure nothrow {
 	}
 }
 
-/+
 /// ditto
 unittest {
 	struct Foo {}
 	enum msg = isBidirectionalRangeErrorFormatter!(Foo);
 	enum exp =`Foo is not an BidirectionalRange because
 	the property 'empty' does not exist
-	the property 'front' does not exist
-	the function 'popFront' does not exist
-	the property 'back' does not exist`;
-	static assert(msg == exp, msg ~ "\n" ~ exp);
+	and the property 'front' does not exist
+	and the function 'popFront' does not exist
+	and the property 'back' does not exist
+	and the function 'popBack' does not exist`;
+	static assert(msg == exp, "\n" ~ msg ~ "\n" ~ exp);
 	string msg2 = isBidirectionalRangeErrorFormatter!(Foo);
 	assert(msg2 == exp, msg ~ "\n" ~ exp);
 }
@@ -310,11 +291,12 @@ unittest {
 	}
 	enum msg = isBidirectionalRangeErrorFormatter!(Foo);
 	enum exp =`Foo is not an BidirectionalRange because
-	the property 'empty' does not return a 'bool' but a 'int'
-	the property 'front' does not exist
-	the function 'popFront' does not exist
-	the property 'back' does not exist`;
-	static assert(msg == exp, msg ~ "\n" ~ exp);
+	the property 'empty' is not of type 'bool' but 'int'
+	and the property 'front' does not exist
+	and the function 'popFront' does not exist
+	and the property 'back' does not exist
+	and the function 'popBack' does not exist`;
+	static assert(msg == exp, "\n" ~ msg ~ "\n" ~ exp);
 	string msg2 = isBidirectionalRangeErrorFormatter!(Foo);
 	assert(msg2 == exp, msg ~ "\n" ~ exp);
 }
@@ -328,9 +310,10 @@ unittest {
 	enum msg = isBidirectionalRangeErrorFormatter!(Foo);
 	enum exp =`Foo is not an BidirectionalRange because
 	the property 'front' does not return a non 'void' value
-	the function 'popFront' does not exist
-	the property 'back' does not exist`;
-	static assert(msg == exp, msg ~ "\n" ~ exp);
+	and the function 'popFront' does not exist
+	and the property 'back' does not exist
+	and the function 'popBack' does not exist`;
+	static assert(msg == exp, "\n" ~ msg ~ "\n" ~ exp);
 	string msg2 = isBidirectionalRangeErrorFormatter!(Foo);
 	assert(msg2 == exp, msg ~ "\n" ~ exp);
 }
@@ -344,8 +327,9 @@ unittest {
 	enum msg = isBidirectionalRangeErrorFormatter!(Foo);
 	enum exp =`Foo is not an BidirectionalRange because
 	the function 'popFront' does not exist
-	the property 'back' does not exist`;
-	static assert(msg == exp, msg ~ "\n" ~ exp);
+	and the property 'back' does not exist
+	and the function 'popBack' does not exist`;
+	static assert(msg == exp, "\n" ~ msg ~ "\n" ~ exp);
 	string msg2 = isBidirectionalRangeErrorFormatter!(Foo);
 	assert(msg2 == exp, msg ~ "\n" ~ exp);
 }
@@ -360,86 +344,127 @@ unittest {
 	}
 	enum msg = isBidirectionalRangeErrorFormatter!(Foo);
 	enum exp =`Foo is not an BidirectionalRange because
-	the property 'back' does return a 'float' which is not equal to the type of 'front' which is 'int'`;
+	the property 'back' does return a 'float' which is not equal to the type of 'front' which is 'int'
+	and the function 'popBack' does not exist`;
 	static assert(msg == exp, "\n" ~ msg ~ "\n" ~ exp);
 	string msg2 = isBidirectionalRangeErrorFormatter!(Foo);
 	assert(msg2 == exp, "\n" ~ msg ~ "\n" ~ exp);
 }
-+/
+
+/// ditto
+unittest {
+	struct Foo {
+		bool empty;
+		int front();
+		void popFront();
+		float back();
+	}
+	enum msg = isBidirectionalRangeErrorFormatter!(Foo);
+	enum exp =`Foo is not an BidirectionalRange because
+	the property 'back' does return a 'float' which is not equal to the type of 'front' which is 'int'
+	and the function 'popBack' does not exist`;
+	static assert(msg == exp, "\n" ~ msg ~ "\n" ~ exp);
+	string msg2 = isBidirectionalRangeErrorFormatter!(Foo);
+	assert(msg2 == exp, "\n" ~ msg ~ "\n" ~ exp);
+}
+
+/// ditto
+unittest {
+	struct Foo {
+		bool empty;
+		int front();
+		void popFront();
+		int back();
+
+	}
+	enum msg = isBidirectionalRangeErrorFormatter!(Foo);
+	enum exp =`Foo is not an BidirectionalRange because
+	the function 'popBack' does not exist`;
+	static assert(msg == exp, "\n" ~ msg ~ "\n" ~ exp);
+	string msg2 = isBidirectionalRangeErrorFormatter!(Foo);
+	assert(msg2 == exp, "\n" ~ msg ~ "\n" ~ exp);
+}
+
+/// ditto
+unittest {
+	struct Foo {
+		bool empty;
+		int front();
+		void popFront();
+		int back();
+		void popBack();
+
+	}
+	enum msg = isBidirectionalRangeErrorFormatter!(Foo);
+	static assert(msg == "Foo is an BidirectionalRange", msg);
+	string msg2 = isBidirectionalRangeErrorFormatter!(Foo);
+	assert(msg2 == "Foo is an BidirectionalRange", msg);
+}
 
 /**
-* This function produces a descriptive message why `R` is not an RandomAccessRange.
+* This function produces a descriptive message why `R` is not a
+* RandomAccessRange.
 * If `R` is an RandomAccessRange the returned string will say so.
 */
-string isRandomAccessRangeErrorFormatter(R)() pure nothrow {
+string isRandomAccessRangeErrorFormatter(R)() pure {
 	static if(is(typeof(R.init) == R)) {
-		bool failed = false;
-		string ret = R.stringof ~ " is not an RandomAccessRange because";
-
-		enum ev = isEmptyValid!R();
-		failed |= ev.failed;
-		ret ~= ev.message;
-
-		enum fv = isFrontValid!R();
-		failed |= fv.failed;
-		ret ~= fv.message;
-
-		enum pv = isPopFrontValid!R();
-		failed |= pv.failed;
-		ret ~= pv.message;
-
-		static if(!isAutodecodableString!R || isAggregateType!R) {
-			failed = true;
-			ret ~= "\n\t" ~ R.stringof ~ " must not be an autodecodable string"
-				~ " but should be an aggregate type";
-		}
-
-		enum sv = isSaveValid!R();
-		failed |= sv.failed;
-		ret ~= sv.message;
+		string ret = R.stringof ~ " is not an RandomAccessRange because\n\t";
 
 		static if(!(isBidirectionalRange!R || !isInfinite!R)) {
-			failed = true;
-			ret ~= "\n\t'" ~ R.stringof ~ ".empty' must either be 'enum bool = "
+			Test isNotBiNorInf = Test(true
+				, ".empty' must either be 'enum bool = "
 				~ "true' or 'ReturnType!(" ~ R.stringof ~ ".back)' must be equal"
-				~ " to 'ReturnType!(" ~ R.stringof ~ ".front)'";
+				~ " to 'ReturnType!(" ~ R.stringof ~ ".front)'");
+		} else {
+			Test isNotBiNorInf = Test(false, "");
 		}
 
 		static if(!(hasLength!R || !isInfinite!R)) {
-			failed = true;
-			ret ~= "\n\t'" ~ R.stringof ~ ".empty' must either be 'enum bool = "
-				~ "true' or '" ~ R.stringof ~ ".length' must be of type 'size_t'";
+			Test hasLenOrInf = Test(true
+				, ".empty' must either be 'enum bool = "
+				~ "true' or '" ~ R.stringof
+				~ ".length' must be of type 'size_t'");
+		} else {
+			Test hasLenOrInf = Test(false, "");
 		}
 
 		static if(!is(typeof(lvalueOf!R[1]))) {
-			failed = true;
-			ret ~= "\n\t" ~ R.stringof ~ " must allow for array indexing, aka."
-				~ " [] access";
+			Test allowOpIndex = Test(true
+				, R.stringof ~ " must allow for array indexing, aka. [] access");
+		} else {
+			Test allowOpIndex = Test(false, "");
 		}
 
 		static if(is(typeof(lvalueOf!R[1]))
 				&& !is(typeof(lvalueOf!R[1]) == ElementType!R))
 		{
-			failed = true;
-			ret ~= "\n\t" ~ R.stringof ~ "[1] is of type '"
+			Test opIndexType = Test(true
+				, R.stringof ~ "[1] is of type '"
 				~ typeof(lvalueOf!R[1]) ~ "' but must be equal to '"
 				~ R.stringof ~ ".front' which is '" ~ ElementType!(R).stringof
-				~ "'";
+				~ "'");
+		} else {
+			Test opIndexType = Test(false, "");
 		}
 
-		static if(!(isInfinite!R
-				|| !is(typeof(lvalueOf!R[$ - 1]))
-				|| is(typeof(lvalueOf!R[$ - 1]) == ElementType!R)))
-		{
-			failed = true;
-			ret ~= "\n\t" ~ R.stringof ~ ".empty must either be 'enum bool = "
-				~ "true' or " ~ R.stringof ~ "[$ - 1] must be of the same type "
-				~ "as " ~ R.stringof ~ ".front which is '" ~ ElementType!R
-				~ "'";
-		}
+		Test[] tests =
+				[ isValidEmpty!R()
+				, isFrontValid!R()
+				, isPopFrontValid!R()
+				, isSaveValid!R()
+				, isNotSomeString!R()
+				, isNotBiNorInf
+				, hasLenOrInf
+				, allowOpIndex
+				, opIndexType
+				];
+
+		auto msg = testsToString(tests);
+
+		bool failed = tests.map!(t => t.failed).any();
 
 		return failed
-			? ret
+			? ret ~ msg
 			: R.stringof ~ " is an RandomAccessRange";
 	} else {
 		return R.stringof ~ " can not be tested as " ~ R.stringof ~ ".init"
@@ -447,18 +472,16 @@ string isRandomAccessRangeErrorFormatter(R)() pure nothrow {
 	}
 }
 
-/+
 /// ditto
 unittest {
 	struct Foo {}
 	enum msg = isRandomAccessRangeErrorFormatter!(Foo);
 	enum exp =`Foo is not an RandomAccessRange because
 	the property 'empty' does not exist
-	the property 'front' does not exist
-	the function 'popFront' does not exist
-	Foo must not be an autodecodable string but should be an aggregate type
-	the property 'save' does not exist
-	Foo must allow for array indexing, aka. [] access`;
+	and the property 'front' does not exist
+	and the function 'popFront' does not exist
+	and the property 'save' does not exist
+	and Foo must allow for array indexing, aka. [] access`;
 	static assert(msg == exp, "\n" ~ msg ~ "\n" ~ exp);
 	string msg2 = isRandomAccessRangeErrorFormatter!(Foo);
 	assert(msg2 == exp, "\n" ~ msg ~ "\n" ~ exp);
@@ -471,12 +494,11 @@ unittest {
 	}
 	enum msg = isRandomAccessRangeErrorFormatter!(Foo);
 	enum exp = `Foo is not an RandomAccessRange because
-	the property 'empty' does not return a 'bool' but a 'int'
-	the property 'front' does not exist
-	the function 'popFront' does not exist
-	Foo must not be an autodecodable string but should be an aggregate type
-	the property 'save' does not exist
-	Foo must allow for array indexing, aka. [] access`;
+	the property 'empty' is not of type 'bool' but 'int'
+	and the property 'front' does not exist
+	and the function 'popFront' does not exist
+	and the property 'save' does not exist
+	and Foo must allow for array indexing, aka. [] access`;
 	static assert(msg == exp, msg ~ "\n" ~ exp);
 	string msg2 = isRandomAccessRangeErrorFormatter!(Foo);
 	assert(msg2 == exp, msg ~ "\n" ~ exp);
@@ -491,12 +513,9 @@ unittest {
 	enum msg = isRandomAccessRangeErrorFormatter!(Foo);
 	enum exp =`Foo is not an RandomAccessRange because
 	the property 'front' does not return a non 'void' value
-	the function 'popFront' does not exist
-	Foo must not be an autodecodable string but should be an aggregate type
-	the property 'save' does not exist
-	'Foo.empty' must either be 'enum bool = true' or 'ReturnType!(Foo.back)' must be equal to 'ReturnType!(Foo.front)'
-	'Foo.empty' must either be 'enum bool = true' or 'Foo.length' must be of type 'size_t'
-	Foo must allow for array indexing, aka. [] access`;
+	and the function 'popFront' does not exist
+	and the property 'save' does not exist
+	and Foo must allow for array indexing, aka. [] access`;
 	static assert(msg == exp, msg ~ "\n" ~ exp);
 	string msg2 = isRandomAccessRangeErrorFormatter!(Foo);
 	assert(msg2 == exp, msg ~ "\n" ~ exp);
@@ -511,11 +530,8 @@ unittest {
 	enum msg = isRandomAccessRangeErrorFormatter!(Foo);
 	enum exp =`Foo is not an RandomAccessRange because
 	the function 'popFront' does not exist
-	Foo must not be an autodecodable string but should be an aggregate type
-	the property 'save' does not exist
-	'Foo.empty' must either be 'enum bool = true' or 'ReturnType!(Foo.back)' must be equal to 'ReturnType!(Foo.front)'
-	'Foo.empty' must either be 'enum bool = true' or 'Foo.length' must be of type 'size_t'
-	Foo must allow for array indexing, aka. [] access`;
+	and the property 'save' does not exist
+	and Foo must allow for array indexing, aka. [] access`;
 	static assert(msg == exp, msg ~ "\n" ~ exp);
 	string msg2 = isRandomAccessRangeErrorFormatter!(Foo);
 	assert(msg2 == exp, msg ~ "\n" ~ exp);
@@ -531,11 +547,8 @@ unittest {
 	}
 	enum msg = isRandomAccessRangeErrorFormatter!(Foo);
 	enum exp =`Foo is not an RandomAccessRange because
-	Foo must not be an autodecodable string but should be an aggregate type
 	the property 'save' does not exist
-	'Foo.empty' must either be 'enum bool = true' or 'ReturnType!(Foo.back)' must be equal to 'ReturnType!(Foo.front)'
-	'Foo.empty' must either be 'enum bool = true' or 'Foo.length' must be of type 'size_t'
-	Foo must allow for array indexing, aka. [] access`;
+	and Foo must allow for array indexing, aka. [] access`;
 	static assert(msg == exp, "\n" ~ msg ~ "\n" ~ exp);
 	string msg2 = isRandomAccessRangeErrorFormatter!(Foo);
 	assert(msg2 == exp, "\n" ~ msg ~ "\n" ~ exp);
@@ -551,11 +564,8 @@ unittest {
 	}
 	enum msg = isRandomAccessRangeErrorFormatter!(Foo);
 	enum exp =`Foo is not an RandomAccessRange because
-	Foo must not be an autodecodable string but should be an aggregate type
 	the property 'save' does not exist
-	'Foo.empty' must either be 'enum bool = true' or 'ReturnType!(Foo.back)' must be equal to 'ReturnType!(Foo.front)'
-	'Foo.empty' must either be 'enum bool = true' or 'Foo.length' must be of type 'size_t'
-	Foo must allow for array indexing, aka. [] access`;
+	and Foo must allow for array indexing, aka. [] access`;
 	static assert(msg == exp, "\n" ~ msg ~ "\n" ~ exp);
 	string msg2 = isRandomAccessRangeErrorFormatter!(Foo);
 	assert(msg2 == exp, "\n" ~ msg ~ "\n" ~ exp);
@@ -572,30 +582,7 @@ unittest {
 	}
 	enum msg = isRandomAccessRangeErrorFormatter!(Foo);
 	enum exp =`Foo is not an RandomAccessRange because
-	Foo must not be an autodecodable string but should be an aggregate type
-	'Foo.empty' must either be 'enum bool = true' or 'ReturnType!(Foo.back)' must be equal to 'ReturnType!(Foo.front)'
-	'Foo.empty' must either be 'enum bool = true' or 'Foo.length' must be of type 'size_t'
 	Foo must allow for array indexing, aka. [] access`;
-	static assert(msg == exp, "\n" ~ msg ~ "\n" ~ exp);
-	string msg2 = isRandomAccessRangeErrorFormatter!(Foo);
-	assert(msg2 == exp, "\n" ~ msg ~ "\n" ~ exp);
-}
-
-/// ditto
-unittest {
-	struct Foo {
-		enum empty = true;
-		int front();
-		void popFront();
-		float back();
-		Foo save() { return this; }
-		int opIndex(size_t idx) { return 0; }
-	}
-	enum msg = isRandomAccessRangeErrorFormatter!(Foo);
-	enum exp =`Foo is not an RandomAccessRange because
-	Foo must not be an autodecodable string but should be an aggregate type
-	'Foo.empty' must either be 'enum bool = true' or 'ReturnType!(Foo.back)' must be equal to 'ReturnType!(Foo.front)'
-	'Foo.empty' must either be 'enum bool = true' or 'Foo.length' must be of type 'size_t'`;
 	static assert(msg == exp, "\n" ~ msg ~ "\n" ~ exp);
 	string msg2 = isRandomAccessRangeErrorFormatter!(Foo);
 	assert(msg2 == exp, "\n" ~ msg ~ "\n" ~ exp);
@@ -613,13 +600,47 @@ unittest {
 		size_t length() { return 0; }
 	}
 	enum msg = isRandomAccessRangeErrorFormatter!(Foo);
-	enum exp =`Foo is not an RandomAccessRange because
-	Foo must not be an autodecodable string but should be an aggregate type`;
+	enum exp =`Foo is an RandomAccessRange`;
 	static assert(msg == exp, "\n" ~ msg ~ "\n" ~ exp);
 	string msg2 = isRandomAccessRangeErrorFormatter!(Foo);
 	assert(msg2 == exp, "\n" ~ msg ~ "\n" ~ exp);
 }
-+/
+
+/**
+* This function produces a descriptive message why `R` is not an
+* OutputRange.
+* If `R` is an OutputRange the returned string will say so.
+*/
+string isOutputRangeErrorFormatter(R,E)() pure {
+	string ret = R.stringof ~ " is not an OutputRange because";
+
+	Test putTest = isOutputRangeValue!(R,E)();
+
+	return putTest.failed
+		? ret ~ "\n\t" ~ putTest.message
+		: R.stringof ~ " is an OutputRange";
+}
+
+unittest {
+	struct Foo {}
+	enum msg = isOutputRangeErrorFormatter!(Foo,int);
+	enum exp =`Foo is not an OutputRange because
+	calling std.range.primitives.put(ref Foo, int) is not possible`;
+	static assert(msg == exp, "\n" ~ msg ~ "\n" ~ exp);
+	string msg2 = isOutputRangeErrorFormatter!(Foo,int);
+	assert(msg2 == exp, "\n" ~ msg ~ "\n" ~ exp);
+}
+
+unittest {
+	struct Foo {
+		void put(int a) { }
+	}
+	enum msg = isOutputRangeErrorFormatter!(Foo,int);
+	enum exp =`Foo is an OutputRange`;
+	static assert(msg == exp, "\n" ~ msg ~ "\n" ~ exp);
+	string msg2 = isOutputRangeErrorFormatter!(Foo,int);
+	assert(msg2 == exp, "\n" ~ msg ~ "\n" ~ exp);
+}
 
 private:
 
@@ -750,6 +771,35 @@ unittest {
 		void popFront();
 	}
 	enum Test a = isPopFrontValid!Foo();
+	static assert(!a.failed);
+	static assert(a.message.empty);
+}
+
+//
+// isPopBackValid
+//
+Test isPopBackValid(R)() {
+	enum hasPopBack = is(typeof((R r) => r.popBack));
+	static if(!hasPopBack) {
+		return Test(true, "the function 'popBack' does not exist");
+	} else {
+		return Test(false, "");
+	}
+}
+
+unittest {
+	struct Foo{}
+	enum Test a = isPopBackValid!Foo();
+	static assert(a.failed);
+	static assert(a.message == "the function 'popBack' does not exist"
+			, a.message);
+}
+
+unittest {
+	struct Foo{
+		void popBack();
+	}
+	enum Test a = isPopBackValid!Foo();
 	static assert(!a.failed);
 	static assert(a.message.empty);
 }
@@ -1016,4 +1066,85 @@ unittest {
 	enum Test a = hasValidLength!Foo();
 	static assert(!a.failed);
 	static assert(a.message.empty);
+}
+
+//
+// isNotSomeString
+//
+Test isNotSomeString(R)() {
+	static if(isAutodecodableString!R || !isAggregateType!R) {
+		return Test(true, R.stringof ~ " must not be an autodecodable string"
+			~ " but should be an aggregate type");
+	} else {
+		return Test(false, "");
+	}
+}
+
+//
+// isValidOutputRange
+//
+Test isOutputRangeValue(R, E)() {
+	static if(!is(typeof(put(lvalueOf!R, lvalueOf!E)))) {
+		return Test(true, "calling std.range.primitives.put(ref " ~ R.stringof
+				~ ", " ~ E.stringof ~ ") is not possible");
+	} else {
+		return Test(false, "");
+	}
+}
+
+//
+// helper
+//
+
+string testsToString(Test[] tests) pure {
+	return tests
+		.filter!(t => t.failed)
+		.map!(t => t.message)
+		.joiner("\n\tand ")
+		.to!string();
+}
+
+void doPutCopyPast(R, E)(ref R r, auto ref E e)
+{
+    static if (is(PointerTarget!R == struct))
+        enum usingPut = hasMember!(PointerTarget!R, "put");
+    else
+        enum usingPut = hasMember!(R, "put");
+
+    static if (usingPut)
+    {
+        static assert(is(typeof(r.put(e))),
+            "Cannot put a " ~ E.stringof ~ " into a " ~ R.stringof ~ ".");
+        r.put(e);
+    }
+    else static if (isNarrowString!R && is(const(E) == const(typeof(r[0]))))
+    {
+        // one character, we can put it
+        r[0] = e;
+        r = r[1 .. $];
+    }
+    else static if (isNarrowString!R && isNarrowString!E && is(typeof(r[] = e)))
+    {
+        // slice assign. Note that this is a duplicate from put, but because
+        // putChar uses doPut exclusively, we have to copy it here.
+        immutable len = e.length;
+        r[0 .. len] = e;
+        r = r[len .. $];
+    }
+    else static if (isInputRange!R)
+    {
+        static assert(is(typeof(r.front = e)),
+            "Cannot put a " ~ E.stringof ~ " into a " ~ R.stringof ~ ".");
+        r.front = e;
+        r.popFront();
+    }
+    else static if (is(typeof(r(e))))
+    {
+        r(e);
+    }
+    else
+    {
+        static assert(false,
+            "Cannot put a " ~ E.stringof ~ " into a " ~ R.stringof ~ ".");
+    }
 }
