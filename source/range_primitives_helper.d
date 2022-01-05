@@ -430,7 +430,7 @@ string isRandomAccessRangeErrorFormatter(R)() pure {
 
 		static if(!is(typeof(lvalueOf!R[1]))) {
 			Test allowOpIndex = Test(true
-				, R.stringof ~ " must allow for array indexing, aka. [] access");
+				, "must allow for array indexing, aka. [] access");
 		} else {
 			Test allowOpIndex = Test(false, "");
 		}
@@ -481,7 +481,7 @@ unittest {
 	and the property 'front' does not exist
 	and the function 'popFront' does not exist
 	and the property 'save' does not exist
-	and Foo must allow for array indexing, aka. [] access`;
+	and must allow for array indexing, aka. [] access`;
 	static assert(msg == exp, "\n" ~ msg ~ "\n" ~ exp);
 	string msg2 = isRandomAccessRangeErrorFormatter!(Foo);
 	assert(msg2 == exp, "\n" ~ msg ~ "\n" ~ exp);
@@ -498,7 +498,7 @@ unittest {
 	and the property 'front' does not exist
 	and the function 'popFront' does not exist
 	and the property 'save' does not exist
-	and Foo must allow for array indexing, aka. [] access`;
+	and must allow for array indexing, aka. [] access`;
 	static assert(msg == exp, msg ~ "\n" ~ exp);
 	string msg2 = isRandomAccessRangeErrorFormatter!(Foo);
 	assert(msg2 == exp, msg ~ "\n" ~ exp);
@@ -515,7 +515,7 @@ unittest {
 	the property 'front' does not return a non 'void' value
 	and the function 'popFront' does not exist
 	and the property 'save' does not exist
-	and Foo must allow for array indexing, aka. [] access`;
+	and must allow for array indexing, aka. [] access`;
 	static assert(msg == exp, msg ~ "\n" ~ exp);
 	string msg2 = isRandomAccessRangeErrorFormatter!(Foo);
 	assert(msg2 == exp, msg ~ "\n" ~ exp);
@@ -531,7 +531,7 @@ unittest {
 	enum exp =`Foo is not an RandomAccessRange because
 	the function 'popFront' does not exist
 	and the property 'save' does not exist
-	and Foo must allow for array indexing, aka. [] access`;
+	and must allow for array indexing, aka. [] access`;
 	static assert(msg == exp, msg ~ "\n" ~ exp);
 	string msg2 = isRandomAccessRangeErrorFormatter!(Foo);
 	assert(msg2 == exp, msg ~ "\n" ~ exp);
@@ -548,7 +548,7 @@ unittest {
 	enum msg = isRandomAccessRangeErrorFormatter!(Foo);
 	enum exp =`Foo is not an RandomAccessRange because
 	the property 'save' does not exist
-	and Foo must allow for array indexing, aka. [] access`;
+	and must allow for array indexing, aka. [] access`;
 	static assert(msg == exp, "\n" ~ msg ~ "\n" ~ exp);
 	string msg2 = isRandomAccessRangeErrorFormatter!(Foo);
 	assert(msg2 == exp, "\n" ~ msg ~ "\n" ~ exp);
@@ -565,7 +565,7 @@ unittest {
 	enum msg = isRandomAccessRangeErrorFormatter!(Foo);
 	enum exp =`Foo is not an RandomAccessRange because
 	the property 'save' does not exist
-	and Foo must allow for array indexing, aka. [] access`;
+	and must allow for array indexing, aka. [] access`;
 	static assert(msg == exp, "\n" ~ msg ~ "\n" ~ exp);
 	string msg2 = isRandomAccessRangeErrorFormatter!(Foo);
 	assert(msg2 == exp, "\n" ~ msg ~ "\n" ~ exp);
@@ -582,7 +582,7 @@ unittest {
 	}
 	enum msg = isRandomAccessRangeErrorFormatter!(Foo);
 	enum exp =`Foo is not an RandomAccessRange because
-	Foo must allow for array indexing, aka. [] access`;
+	must allow for array indexing, aka. [] access`;
 	static assert(msg == exp, "\n" ~ msg ~ "\n" ~ exp);
 	string msg2 = isRandomAccessRangeErrorFormatter!(Foo);
 	assert(msg2 == exp, "\n" ~ msg ~ "\n" ~ exp);

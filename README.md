@@ -85,6 +85,28 @@ int is not an RandomAccessRange because
 	and int must allow for array indexing, aka. [] access"
 ```
 
+If we call `fun` with a custom `struct` that looks like
+
+```dlang
+struct Thing {
+	void popFront();
+	@property int front() { return 0; }
+}
+```
+
+we get the error string
+
+```sh
+SOURCE_LOCATION: Error: static assert:  "
+'fun' expected 'T' = 'Thing' either to be an InputRange or a RandomAccessRange but
+Thing is not an InputRange because:
+	the property 'empty' does not exist
+Thing is not an RandomAccessRange because
+	the property 'empty' does not exist
+	and the property 'save' does not exist
+	and must allow for array indexing, aka. [] access"
+```
+
 ## Primitives
 
 The are primitives for:
